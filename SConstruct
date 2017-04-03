@@ -1,171 +1,72 @@
-# $Id$
+import sys
+import excons
 
-# Tag Image File Format (TIFF) Software
-#
-# Copyright (C) 2005, Andrey Kiselev <dron@ak4719.spb.edu>
-#
-# Permission to use, copy, modify, distribute, and sell this software and 
-# its documentation for any purpose is hereby granted without fee, provided
-# that (i) the above copyright notices and this permission notice appear in
-# all copies of the software and related documentation, and (ii) the names of
-# Sam Leffler and Silicon Graphics may not be used in any advertising or
-# publicity relating to the software without the specific, prior written
-# permission of Sam Leffler and Silicon Graphics.
-# 
-# THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND, 
-# EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY 
-# WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  
-# 
-# IN NO EVENT SHALL SAM LEFFLER OR SILICON GRAPHICS BE LIABLE FOR
-# ANY SPECIAL, INCIDENTAL, INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND,
-# OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
-# WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF 
-# LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 
-# OF THIS SOFTWARE.
+env = excons.MakeBaseEnv()
 
-# This file contains rules to build software with the SCons tool
-# (see the http://www.scons.org/ for details on SCons).
+out_incdir = excons.OutputBaseDirectory() + "/include"
+out_libdir = excons.OutputBaseDirectory() + "/lib"
 
-import os
+staticlib = (excons.GetArgument("static", 1, int) != 0)
 
-env = Environment()
+excons.Call("libjpeg-turbo")
+excons.Call("zlib")
 
-# Read the user supplied options
-opts = Options('libtiff.conf')
-opts.Add(PathOption('PREFIX', \
-    'install architecture-independent files in this directory', \
-    '/usr/local', PathOption.PathIsDirCreate))
-opts.Add(BoolOption('ccitt', \
-    'enable support for CCITT Group 3 & 4 algorithms', \
-    'yes'))
-opts.Add(BoolOption('packbits', \
-    'enable support for Macintosh PackBits algorithm', \
-    'yes'))
-opts.Add(BoolOption('lzw', \
-    'enable support for LZW algorithm', \
-    'yes'))
-opts.Add(BoolOption('thunder', \
-    'enable support for ThunderScan 4-bit RLE algorithm', \
-    'yes'))
-opts.Add(BoolOption('next', \
-    'enable support for NeXT 2-bit RLE algorithm', \
-    'yes'))
-opts.Add(BoolOption('logluv', \
-    'enable support for LogLuv high dynamic range encoding', \
-    'yes'))
-opts.Add(BoolOption('strip_chopping', \
-    'support for strip chopping (whether or not to convert single-strip uncompressed images to mutiple strips of ~8Kb to reduce memory usage)', \
-    'yes'))
-opts.Add(BoolOption('extrasample_as_alpha', \
-    'the RGBA interface will treat a fourth sample with no EXTRASAMPLE_ value as being ASSOCALPHA. Many packages produce RGBA files but don\'t mark the alpha properly', \
-    'yes'))
-opts.Add(BoolOption('check_ycbcr_subsampling', \
-    'disable picking up YCbCr subsampling info from the JPEG data stream to support files lacking the tag', \
-    'yes'))
-opts.Update(env)
-opts.Save('libtiff.conf', env)
-Help(opts.GenerateHelpText(env))
+zlibname = ("zlibstatic.lib" if sys.platform == "win32" else "libz.a")
+jpegname = ("jpeg-static.lib" if sys.platform == "win32" else "libjpeg.a")
 
-# Here are our installation paths:
-idir_prefix = '$PREFIX'
-idir_lib = '$PREFIX/lib'
-idir_bin = '$PREFIX/bin'
-idir_inc = '$PREFIX/include'
-idir_doc = '$PREFIX/doc'
-Export([ 'env', 'idir_prefix', 'idir_lib', 'idir_bin', 'idir_inc', 'idir_doc' ])
 
-# Now proceed to system feature checks
-target_cpu, target_vendor, target_kernel, target_os = \
-    os.popen("./config/config.guess").readlines()[0].split("-")
+if not env.CMakeConfigure("libtiff", opts={"BUILD_SHARED_LIBS": (0 if staticlib else 1),
+                                           "CMAKE_INSTALL_LIBDIR": "lib",
+                                           # External codes
+                                           "zlib": 1,     # zlib library
+                                           "ZLIB_INCLUDE_DIR": out_incdir,
+                                           "ZLIB_LIBRARY": out_libdir + "/" + zlibname,
+                                           "jpeg": 1,     # jpeg library
+                                           "old-jpeg": 1, # requires jpeg support
+                                           "JPEG_INCLUDE_DIR": out_incdir,
+                                           "JPEG_LIBRARY": out_libdir + "/" + jpegname,
+                                           "jpeg12": 0,   # 12bit jpeg support (JPEG12_* alternative library)
+                                           "lzma": 0,     # lzma library
+                                           "jbig": 0,     # jbig library
+                                           "pixarlog": 1, # requires zlib support
+                                           # Internal codes
+                                           "ccitt": 1,
+                                           "packbits": 1,
+                                           "lzw": 1,
+                                           "thunder": 1,
+                                           "next": 1,
+                                           "logluv": 1,
+                                           # other options
+                                           "mdi": 1,
+                                           "cxx": 0}):
+   sys.exit(1)
 
-def Define(context, key, have):
-    import SCons.Conftest
-    SCons.Conftest._Have(context, key, have)
+target = env.CMake(env.CMakeOutputs(),
+                   env.CMakeInputs(dirs=["libtiff"],
+                                   patterns=[".h", ".hxx", ".c", ".cmake.in"]))
 
-def CheckCustomOption(context, name):
-    context.Message('Checking is the ' + name + ' option set... ')
-    ret = env[name]
-    Define(context, name + '_SUPPORT', ret)
-    context.Result(ret)
-    return ret
+env.Alias("libtiff", target)
+env.Depends(target, "zlib")
+env.Depends(target, "jpeg")
 
-def CheckFillorderOption(context):
-    context.Message('Checking for the native cpu bit order... ')
-    if target_cpu[0] == 'i' and target_cpu[2:] == '86':
-	Define(context, 'HOST_FILLORDER', 'FILLORDER_LSB2MSB')
-	context.Result('lsb2msb')
-    else:
-	Define(context, 'HOST_FILLORDER', 'FILLORDER_MSB2LSB')
-	context.Result('msb2lsb')
-    return 1
+env.CMakeClean()
 
-def CheckIEEEFPOption(context):
-    context.Message('Checking for the IEEE floating point format... ')
-    Define(context, 'HAVE_IEEEFP', 1)
-    context.Result(1)
-    return 1
+excons.SyncCache()
 
-def CheckOtherOption(context, name):
-    context.Message('Checking is the ' + name + ' option set... ')
-    ret = env[name]
-    Define(context, 'HAVE_' + name, ret)
-    context.Result(ret)
-    return ret
 
-custom_tests = { \
-    'CheckCustomOption' : CheckCustomOption, \
-    'CheckFillorderOption' : CheckFillorderOption, \
-    'CheckIEEEFPOption' : CheckIEEEFPOption, \
-    'CheckOtherOption' : CheckOtherOption \
-    }
-conf = Configure(env, custom_tests = custom_tests, \
-    config_h = 'libtiff/tif_config.h')
+def RequireTiff(env):
+   env.Append(CPPPATH=[out_incdir])
+   env.Append(LIBPATH=[out_libdir])
+   if staticlib:
+      if sys.platform != "win32":
+         env.StaticallyLink(env, "tiff", silent=True)
+         env.StaticallyLink(env, "jpeg", silent=True)
+         env.StaticallyLink(env, "z", silent=True)
+      else:
+         env.Append(LIBS=["tiff", "jpeg-static", "zlibstatic"])
+   else:
+      env.Append(LIBS=["tiff"])
 
-# Check for standard library
-conf.CheckLib('c')
-if target_os != 'cygwin' \
-    and target_os != 'mingw32' \
-    and target_os != 'beos' \
-    and target_os != 'darwin':
-    conf.CheckLib('m')
+Export("RequireTiff")
 
-# Check for system headers
-conf.CheckCHeader('assert.h')
-conf.CheckCHeader('fcntl.h')
-conf.CheckCHeader('io.h')
-conf.CheckCHeader('limits.h')
-conf.CheckCHeader('malloc.h')
-conf.CheckCHeader('search.h')
-conf.CheckCHeader('sys/time.h')
-conf.CheckCHeader('unistd.h')
 
-# Check for standard library functions
-conf.CheckFunc('floor')
-conf.CheckFunc('isascii')
-conf.CheckFunc('memmove')
-conf.CheckFunc('memset')
-conf.CheckFunc('mmap')
-conf.CheckFunc('pow')
-conf.CheckFunc('setmode')
-conf.CheckFunc('sqrt')
-conf.CheckFunc('strchr')
-conf.CheckFunc('strrchr')
-conf.CheckFunc('strstr')
-conf.CheckFunc('strtol')
-
-conf.CheckFillorderOption()
-conf.CheckIEEEFPOption()
-conf.CheckCustomOption('ccitt')
-conf.CheckCustomOption('packbits')
-conf.CheckCustomOption('lzw')
-conf.CheckCustomOption('thunder')
-conf.CheckCustomOption('next')
-conf.CheckCustomOption('logluv')
-conf.CheckOtherOption('strip_chopping')
-conf.CheckOtherOption('extrasample_as_alpha')
-conf.CheckOtherOption('check_ycbcr_subsampling')
-
-env = conf.Finish()
-
-# Ok, now go to build files in the subdirectories
-SConscript(dirs = [ 'libtiff' ], name = 'SConstruct')

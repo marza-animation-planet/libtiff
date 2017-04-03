@@ -1,0 +1,10 @@
+/release/
+/debug/
+/.build/
+*.dblite
+excons.cache
+*.cmake.inputs
+*.cmake.outputs
+*.automake.inputs
+*.automake.outputs
+
