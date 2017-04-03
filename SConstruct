@@ -11,10 +11,11 @@ staticlib = (excons.GetArgument("static", 1, int) != 0)
 
 excons.Call("libjpeg-turbo")
 excons.Call("zlib")
+excons.Call("jbigkit", imp=["RequireJbig"])
 
 zlibname = ("zlibstatic.lib" if sys.platform == "win32" else "libz.a")
 jpegname = ("jpeg-static.lib" if sys.platform == "win32" else "libjpeg.a")
-
+jbigname = ("jbig.lib" if sys.platform == "win32" else "libjbig.a")
 
 if not env.CMakeConfigure("libtiff", opts={"BUILD_SHARED_LIBS": (0 if staticlib else 1),
                                            "CMAKE_INSTALL_LIBDIR": "lib",
@@ -28,7 +29,9 @@ if not env.CMakeConfigure("libtiff", opts={"BUILD_SHARED_LIBS": (0 if staticlib 
                                            "JPEG_LIBRARY": out_libdir + "/" + jpegname,
                                            "jpeg12": 0,   # 12bit jpeg support (JPEG12_* alternative library)
                                            "lzma": 0,     # lzma library
-                                           "jbig": 0,     # jbig library
+                                           "jbig": 1,     # jbig library
+                                           "JBIG_INCLUDE_DIR": out_incdir,
+                                           "JBIG_LIBRARY": out_libdir + "/" + jbigname,
                                            "pixarlog": 1, # requires zlib support
                                            # Internal codes
                                            "ccitt": 1,
@@ -49,8 +52,10 @@ target = env.CMake(env.CMakeOutputs(),
                                    patterns=[".h", ".hxx", ".c", ".cmake.in"]))
 
 env.Alias("libtiff", target)
+
 env.Depends(target, "zlib")
 env.Depends(target, "libjpeg")
+env.Depends(target, "jbig")
 
 env.CMakeClean()
 
@@ -67,6 +72,7 @@ def RequireLibtiff(env):
          env.StaticallyLink(env, "z", silent=True)
       else:
          env.Append(LIBS=["tiff", "jpeg-static", "zlibstatic"])
+      RequireJbig(env)
    else:
       env.Append(LIBS=["tiff"])
 
