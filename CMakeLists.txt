@@ -156,6 +156,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR
     list(APPEND test_flags
          -Werror)
   endif()
+  add_definitions("-fPIC")
 elseif(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
   set(test_flags)
   if(extra-warnings)
