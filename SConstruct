@@ -47,14 +47,14 @@ target = env.CMake(env.CMakeOutputs(),
 
 env.Alias("libtiff", target)
 env.Depends(target, "zlib")
-env.Depends(target, "jpeg")
+env.Depends(target, "libjpeg")
 
 env.CMakeClean()
 
 excons.SyncCache()
 
 
-def RequireTiff(env):
+def RequireLibtiff(env):
    env.Append(CPPPATH=[out_incdir])
    env.Append(LIBPATH=[out_libdir])
    if staticlib:
@@ -67,6 +67,6 @@ def RequireTiff(env):
    else:
       env.Append(LIBS=["tiff"])
 
-Export("RequireTiff")
+Export("RequireLibtiff")
 
 
