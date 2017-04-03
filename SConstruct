@@ -1,3 +1,4 @@
+import os
 import sys
 import excons
 
@@ -37,6 +38,8 @@ if not env.CMakeConfigure("libtiff", opts={"BUILD_SHARED_LIBS": (0 if staticlib 
                                            "next": 1,
                                            "logluv": 1,
                                            # other options
+                                           "gl": 0,
+                                           "doc": 0,
                                            "mdi": 1,
                                            "cxx": 0}):
    sys.exit(1)
