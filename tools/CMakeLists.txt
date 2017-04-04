@@ -98,6 +98,37 @@ target_link_libraries(tiffset tiff port)
 add_executable(tiffsplit tiffsplit.c)
 target_link_libraries(tiffsplit tiff port)
 
+if(BUILD_SHARED_LIBS AND UNIX)
+  if(APPLE)
+    set(exe_rpath "@loader_path/../lib")
+  else()
+    set(exe_rpath "$ORIGIN/../lib")
+  endif()
+  set_target_properties(bmp2tiff PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(fax2ps PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(fax2tiff PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(gif2tiff PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(pal2rgb PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(ppm2tiff PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(ras2tiff PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(raw2tiff PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(rgb2ycbcr PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(thumbnail PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(tiff2bw PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(tiff2pdf PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(tiff2ps PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(tiff2rgba PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(tiffcmp PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(tiffcp PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(tiffcrop PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(tiffdither PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(tiffdump PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(tiffinfo PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(tiffmedian PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(tiffset PROPERTIES INSTALL_RPATH ${exe_rpath})
+  set_target_properties(tiffsplit PROPERTIES INSTALL_RPATH ${exe_rpath})
+endif()
+
 install(TARGETS bmp2tiff
                 fax2ps
                 fax2tiff
@@ -133,6 +164,10 @@ if(HAVE_OPENGL)
 
   add_executable(tiffgt tiffgt.c)
   target_link_libraries(tiffgt tiff ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
+
+  if(BUILD_SHARED_LIBS AND UNIX)
+    set_target_properties(tiffgt PROPERTIES INSTALL_RPATH ${exe_rpath})
+  endif()
 
   install(TARGETS tiffgt
           RUNTIME DESTINATION "${CMAKE_INSTALL_FULL_BINDIR}")

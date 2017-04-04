@@ -116,6 +116,13 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
 
 add_library(tiff ${tiff_SOURCES} ${tiff_HEADERS} ${nodist_tiff_HEADERS}
             ${tiff_port_SOURCES} libtiff.def)
+if(BUILD_SHARED_LIBS AND UNIX)
+    if(APPLE)
+        set_target_properties(tiff PROPERTIES INSTALL_RPATH "@loader_path")
+    else()
+        set_target_properties(tiff PROPERTIES INSTALL_RPATH "$ORIGIN")
+    endif()
+endif()
 target_link_libraries(tiff ${TIFF_LIBRARY_DEPS})
 set_target_properties(tiff PROPERTIES SOVERSION ${SO_COMPATVERSION})
 if(NOT CYGWIN)
