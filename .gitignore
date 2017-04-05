@@ -5,4 +5,5 @@
 excons.cache
 *.cmake.*
 *.automake.*
-
+autom4te.cache
+*~
