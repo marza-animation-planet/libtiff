@@ -433,6 +433,14 @@ int main(void) {
 if(NOT HAVE_SNPRINTF)
   add_definitions(-DNEED_LIBPORT)
 endif()
+if(MSVC)
+  # Output is way too noisy with warnings, disable the major ones
+  # 4996: POSIX name XXX deprecated...
+  # 4305: double to const float truncation
+  # 4244: conversion from uint64 to uint32
+  # 4267: conversion size_t to int
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS -wd4996 -wd4305 -wd4244 -wd4267)
+endif()
 
 # CPU bit order
 set(fillorder FILLORDER_MSB2LSB)
