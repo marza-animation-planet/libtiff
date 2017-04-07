@@ -48,7 +48,7 @@ if rv is None:
    excons.PrintOnce("Build zlib from sources ...")
    excons.Call("zlib", imp=["RequireZlib", "ZlibPath"])
    cfg_deps.append(excons.cmake.OutputsCachePath("zlib"))
-   zlibstatic = excons.GetArgument("zlib-static", 1, 0)
+   zlibstatic = excons.GetArgument("zlib-static", 1, int)
    cmake_opts["ZLIB_LIBRARY"] = ZlibPath(static=zlibstatic)
    cmake_opts["ZLIB_INCLUDE_DIR"] = out_incdir
    def ZlibRequire(env):
@@ -72,7 +72,7 @@ if rv is None:
       cfg_deps.append(excons.cmake.OutputsCachePath("libjpeg"))
    else:
       cfg_deps.append(excons.automake.OutputsCachePath("libjpeg"))
-   jpegstatic = excons.GetArgument("libjpeg-static", 1, 0)
+   jpegstatic = excons.GetArgument("libjpeg-static", 1, int)
    cmake_opts["JPEG_LIBRARY"] = LibjpegPath(static=jpegstatic)
    cmake_opts["JPEG_INCLUDE_DIR"] = out_incdir
    def JpegRequire(env):
@@ -110,7 +110,9 @@ prjs = [
 ]
 
 excons.AddHelpOptions(libtiff="""TIFF OPTIONS
-  libtiff-static=0|1 : Toggle between static and shared library build [1]""")
+  libtiff-static=0|1 : Toggle between static and shared library build [1]
+  zlib-static=0|1    : When building zlib from sources, link static version of the library to libtiff. [1]
+  libjpeg-static=0|1 : When building libjpeg from sources, link static version of the library to libtiff. [1]""")
 excons.AddHelpOptions(ext_zlib=excons.ExternalLibHelp("zlib"))
 excons.AddHelpOptions(ext_libjpeg=excons.ExternalLibHelp("libjpeg"))
 excons.AddHelpOptions(ext_jbig=excons.ExternalLibHelp("jbig"))
