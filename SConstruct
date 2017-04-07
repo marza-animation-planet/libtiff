@@ -6,7 +6,6 @@ import excons
 env = excons.MakeBaseEnv()
 
 staticlib = (excons.GetArgument("libtiff-static", 1, int) != 0)
-usejbig = excons.GetArgument("libtiff-jbig", 0, int)
 
 out_incdir = excons.OutputBaseDirectory() + "/include"
 out_libdir = excons.OutputBaseDirectory() + "/lib"
@@ -21,7 +20,7 @@ cmake_opts = {"BUILD_SHARED_LIBS": (0 if staticlib else 1),
               "old-jpeg": 1,
               "jpeg12": 0,
               "lzma": 0,
-              "jbig": usejbig,
+              "jbig": 1,
               "pixarlog": 1,
               # Internal codes
               "ccitt": 1,
@@ -49,10 +48,11 @@ if rv is None:
    excons.PrintOnce("Build zlib from sources ...")
    excons.Call("zlib", imp=["RequireZlib", "ZlibPath"])
    cfg_deps.append(excons.cmake.OutputsCachePath("zlib"))
-   cmake_opts["ZLIB_LIBRARY"] = ZlibPath(static=True)
+   zlibstatic = excons.GetArgument("zlib-static", 1, 0)
+   cmake_opts["ZLIB_LIBRARY"] = ZlibPath(static=zlibstatic)
    cmake_opts["ZLIB_INCLUDE_DIR"] = out_incdir
    def ZlibRequire(env):
-      RequireZlib(env, static=True)
+      RequireZlib(env, static=zlibstatic)
 else:
    ZlibRequire = rv
 
@@ -64,39 +64,39 @@ def JpegLibname(static):
       name += "-static"
    return name
 
-rv = excons.cmake.ExternalLibRequire(cmake_opts, name="jpeg", libnameFunc=JpegLibname)
+rv = excons.cmake.ExternalLibRequire(cmake_opts, name="libjpeg", libnameFunc=JpegLibname)
 if rv is None:
-   excons.PrintOnce("Build jpeg from sources ...")
+   excons.PrintOnce("Build libjpeg from sources ...")
    excons.Call("libjpeg-turbo", imp=["RequireLibjpeg", "LibjpegPath"])
    if sys.platform == "win32":
       cfg_deps.append(excons.cmake.OutputsCachePath("libjpeg"))
    else:
       cfg_deps.append(excons.automake.OutputsCachePath("libjpeg"))
-   cmake_opts["JPEG_LIBRARY"] = LibjpegPath(static=True)
+   jpegstatic = excons.GetArgument("libjpeg-static", 1, 0)
+   cmake_opts["JPEG_LIBRARY"] = LibjpegPath(static=jpegstatic)
    cmake_opts["JPEG_INCLUDE_DIR"] = out_incdir
    def JpegRequire(env):
-      RequireLibjpeg(env, static=True)
+      RequireLibjpeg(env, static=jpegstatic)
 else:
    JpegRequire = rv
 
 # JBIG Setup ===================================================================
 
-if usejbig:
-   def JbigLibname(static):
-      return "jbig"
+def JbigLibname(static):
+   return "jbig"
 
-   rv = excons.cmake.ExternalLibRequire(cmake_opts, name="jbig", libnameFunc=JbigLibname)
-   if rv is None:
-      excons.PrintOnce("Build jbig from sources ...")
-      excons.Call("jbigkit", imp=["RequireJbig", "JbigPath"])
-      libpath = JbigPath()
-      cfg_deps.append(libpath)
-      cmake_opts["JBIG_LIBRARY"] = libpath
-      cmake_opts["JBIG_INCLUDE_DIR"] = out_incdir
-      def JbigRequire(env):
-         RequireJbig(env)
-   else:
-      JbigRequire = rv
+rv = excons.cmake.ExternalLibRequire(cmake_opts, name="jbig", libnameFunc=JbigLibname)
+if rv is None:
+   excons.PrintOnce("Build jbig from sources ...")
+   excons.Call("jbigkit", imp=["RequireJbig", "JbigPath"])
+   libpath = JbigPath()
+   cfg_deps.append(libpath)
+   cmake_opts["JBIG_LIBRARY"] = libpath
+   cmake_opts["JBIG_INCLUDE_DIR"] = out_incdir
+   def JbigRequire(env):
+      RequireJbig(env)
+else:
+   JbigRequire = rv
 
 # TIFF library ==================================================================
 
@@ -110,12 +110,11 @@ prjs = [
 ]
 
 excons.AddHelpOptions(libtiff="""TIFF OPTIONS
-  libtiff-static=0|1  : Toggle between static and shared library build [1]
-  libtiff-jbig=0|1    : Build with JBIG support [0]
+  libtiff-static=0|1 : Toggle between static and shared library build [1]""")
+excons.AddHelpOptions(ext_zlib=excons.ExternalLibHelp("zlib"))
+excons.AddHelpOptions(ext_libjpeg=excons.ExternalLibHelp("libjpeg"))
+excons.AddHelpOptions(ext_jbig=excons.ExternalLibHelp("jbig"))
 
-%s\n\n%s\n\n%s""" % (excons.ExternalLibHelp("zlib"),
-                 excons.ExternalLibHelp("jpeg"),
-                 excons.ExternalLibHelp("jbig")))
 excons.DeclareTargets(env, prjs)
 
 # ==============================================================================
@@ -136,8 +135,7 @@ def RequireLibtiff(env):
    env.Append(LIBPATH=[out_libdir])
    excons.Link(env, LibtiffName(), static=staticlib, force=True, silent=True)
    if staticlib:
-      if usejbig:
-         JbigRequire(env)
+      JbigRequire(env)
       JpegRequire(env)
       ZlibRequire(env)
 
