@@ -48,11 +48,11 @@ if rv is None:
    excons.PrintOnce("Build zlib from sources ...")
    excons.Call("zlib", imp=["RequireZlib", "ZlibPath"])
    cfg_deps.append(excons.cmake.OutputsCachePath("zlib"))
-   zlibstatic = excons.GetArgument("zlib-static", 1, int)
-   cmake_opts["ZLIB_LIBRARY"] = ZlibPath(static=zlibstatic)
+   zlib_static = (excons.GetArgument("zlib-static", 1, int) != 0)
+   cmake_opts["ZLIB_LIBRARY"] = ZlibPath(static=zlib_static)
    cmake_opts["ZLIB_INCLUDE_DIR"] = out_incdir
    def ZlibRequire(env):
-      RequireZlib(env, static=zlibstatic)
+      RequireZlib(env, static=zlib_static)
 else:
    ZlibRequire = rv
 
@@ -72,11 +72,11 @@ if rv is None:
       cfg_deps.append(excons.cmake.OutputsCachePath("libjpeg"))
    else:
       cfg_deps.append(excons.automake.OutputsCachePath("libjpeg"))
-   jpegstatic = excons.GetArgument("libjpeg-static", 1, int)
-   cmake_opts["JPEG_LIBRARY"] = LibjpegPath(static=jpegstatic)
+   jpeg_static = (excons.GetArgument("jpeg-static", 1, int) != 0)
+   cmake_opts["JPEG_LIBRARY"] = LibjpegPath(static=jpeg_static)
    cmake_opts["JPEG_INCLUDE_DIR"] = out_incdir
    def JpegRequire(env):
-      RequireLibjpeg(env, static=jpegstatic)
+      RequireLibjpeg(env, static=jpeg_static)
 else:
    JpegRequire = rv
 
