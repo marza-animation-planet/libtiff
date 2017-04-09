@@ -64,7 +64,7 @@ def JpegLibname(static):
       name += "-static"
    return name
 
-rv = excons.cmake.ExternalLibRequire(cmake_opts, name="libjpeg", libnameFunc=JpegLibname)
+rv = excons.cmake.ExternalLibRequire(cmake_opts, name="libjpeg", libnameFunc=JpegLibname, varPrefix="JPEG_")
 if rv is None:
    excons.PrintOnce("Build libjpeg from sources ...")
    excons.Call("libjpeg-turbo", imp=["RequireLibjpeg", "LibjpegPath"])
