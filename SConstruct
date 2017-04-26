@@ -102,10 +102,7 @@ else:
 # TIFF library ==================================================================
 
 def LibtiffName():
-   name = "tiff"
-   if sys.platform == "win32" and staticlib:
-      name = "lib" + name
-   return name
+   return "tiff"
 
 def LibtiffPath():
    name = LibtiffName()
