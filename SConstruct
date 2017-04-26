@@ -100,29 +100,11 @@ else:
 
 # TIFF library ==================================================================
 
-prjs = [
-   {  "name": "libtiff",
-      "type": "cmake",
-      "cmake-opts": cmake_opts,
-      "cmake-cfgs": excons.CollectFiles(".", patterns=["CMakeLists.txt"], recursive=True, exclude=["zlib", "libjpeg-turbo"]) + cfg_deps,
-      "cmake-srcs": excons.CollectFiles("libtiff", patterns=["*.c"], recursive=True)
-   }
-]
-
-excons.AddHelpOptions(libtiff="""TIFF OPTIONS
-  libtiff-static=0|1 : Toggle between static and shared library build [1]
-  zlib-static=0|1    : When building zlib from sources, link static version of the library to libtiff. [1]
-  libjpeg-static=0|1 : When building libjpeg from sources, link static version of the library to libtiff. [1]""")
-excons.AddHelpOptions(ext_zlib=excons.ExternalLibHelp("zlib"))
-excons.AddHelpOptions(ext_libjpeg=excons.ExternalLibHelp("libjpeg"))
-excons.AddHelpOptions(ext_jbig=excons.ExternalLibHelp("jbig"))
-
-excons.DeclareTargets(env, prjs)
-
-# ==============================================================================
-
 def LibtiffName():
-   return "tiff"
+   name = "tiff"
+   if sys.platform == "win32" and staticlib:
+      name = "lib" + name
+   return name
 
 def LibtiffPath():
    name = LibtiffName()
@@ -135,11 +117,32 @@ def LibtiffPath():
 def RequireLibtiff(env):
    env.Append(CPPPATH=[out_incdir])
    env.Append(LIBPATH=[out_libdir])
-   excons.Link(env, LibtiffName(), static=staticlib, force=True, silent=True)
+   excons.Link(env, LibtiffPath(), static=staticlib, force=True, silent=True)
    if staticlib:
       JbigRequire(env)
       JpegRequire(env)
       ZlibRequire(env)
+
+prjs = [
+   {  "name": "libtiff",
+      "type": "cmake",
+      "cmake-opts": cmake_opts,
+      "cmake-cfgs": excons.CollectFiles(".", patterns=["CMakeLists.txt"], recursive=True, exclude=["zlib", "libjpeg-turbo"]) + cfg_deps,
+      "cmake-srcs": excons.CollectFiles("libtiff", patterns=["*.c"], recursive=True),
+      "cmake-outputs": ["include/tiff.h",
+                        "include/tiffconf.h",
+                        "include/tiffio.h",
+                        "include/tiffvers.h",
+                        LibtiffPath()]
+   }
+]
+
+excons.AddHelpOptions(libtiff="""TIFF OPTIONS
+  libtiff-static=0|1 : Toggle between static and shared library build [1]
+  zlib-static=0|1    : When building zlib from sources, link static version of the library to libtiff. [1]
+  libjpeg-static=0|1 : When building libjpeg from sources, link static version of the library to libtiff. [1]""")
+
+excons.DeclareTargets(env, prjs)
 
 Export("LibtiffName LibtiffPath RequireLibtiff")
 
