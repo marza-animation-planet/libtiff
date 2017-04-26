@@ -91,6 +91,7 @@ if rv is None:
    excons.Call("jbigkit", imp=["RequireJbig", "JbigPath"])
    libpath = JbigPath()
    cfg_deps.append(libpath)
+   cfg_deps.append(out_incdir + "/jbig_ar.h")
    cmake_opts["JBIG_LIBRARY"] = libpath
    cmake_opts["JBIG_INCLUDE_DIR"] = out_incdir
    def JbigRequire(env):
