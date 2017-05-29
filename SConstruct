@@ -44,7 +44,7 @@ def ZlibDefines(static):
    return ([] if static else ["ZLIB_DLL"])
 
 rv = excons.cmake.ExternalLibRequire(cmake_opts, name="zlib", libnameFunc=ZlibLibname, definesFunc=ZlibDefines)
-if rv is None:
+if rv["require"] is None:
    excons.PrintOnce("Build zlib from sources ...")
    excons.Call("zlib", imp=["RequireZlib", "ZlibPath"])
    cfg_deps.append(excons.cmake.OutputsCachePath("zlib"))
@@ -54,7 +54,7 @@ if rv is None:
    def ZlibRequire(env):
       RequireZlib(env, static=zlib_static)
 else:
-   ZlibRequire = rv
+   ZlibRequire = rv["require"]
 
 # JPEG Setup ===================================================================
 
@@ -65,7 +65,7 @@ def JpegLibname(static):
    return name
 
 rv = excons.cmake.ExternalLibRequire(cmake_opts, name="libjpeg", libnameFunc=JpegLibname, varPrefix="JPEG_")
-if rv is None:
+if rv["require"] is None:
    excons.PrintOnce("Build libjpeg from sources ...")
    excons.Call("libjpeg-turbo", imp=["RequireLibjpeg", "LibjpegPath"])
    if sys.platform == "win32":
@@ -78,7 +78,7 @@ if rv is None:
    def JpegRequire(env):
       RequireLibjpeg(env, static=jpeg_static)
 else:
-   JpegRequire = rv
+   JpegRequire = rv["require"]
 
 # JBIG Setup ===================================================================
 
@@ -86,7 +86,7 @@ def JbigLibname(static):
    return "jbig"
 
 rv = excons.cmake.ExternalLibRequire(cmake_opts, name="jbig", libnameFunc=JbigLibname)
-if rv is None:
+if rv["require"] is None:
    excons.PrintOnce("Build jbig from sources ...")
    excons.Call("jbigkit", imp=["RequireJbig", "JbigPath"])
    libpath = JbigPath()
@@ -97,7 +97,7 @@ if rv is None:
    def JbigRequire(env):
       RequireJbig(env)
 else:
-   JbigRequire = rv
+   JbigRequire = rv["require"]
 
 # TIFF library ==================================================================
 
