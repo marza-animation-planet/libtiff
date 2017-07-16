@@ -466,10 +466,16 @@ main(int argc, char* argv[])
 		if (tif != NULL) {
 			if (dirnum != -1
                             && !TIFFSetDirectory(tif, (tdir_t)dirnum))
+                        {
+                                TIFFClose(tif);
 				return (-1);
+                        }
 			else if (diroff != 0 &&
 			    !TIFFSetSubDirectory(tif, diroff))
+                        {
+                                TIFFClose(tif);
 				return (-1);
+                        }
 			np = TIFF2PS(output, tif, pageWidth, pageHeight,
 				     leftmargin, bottommargin, centered);
                         if (np < 0)
@@ -2440,6 +2446,11 @@ PSDataColorContig(FILE* fd, TIFF* tif, uint32 w, uint32 h, int nc)
 	unsigned char *cp, c;
 
 	(void) w;
+        if( es <= 0 )
+        {
+            TIFFError(filename, "Inconsistent value of es: %d", es);
+            return;
+        }
 	tf_buf = (unsigned char *) _TIFFmalloc(tf_bytesperrow);
 	if (tf_buf == NULL) {
 		TIFFError(filename, "No space for scanline buffer");
@@ -2692,7 +2703,7 @@ PSDataBW(FILE* fd, TIFF* tif, uint32 w, uint32 h)
 
 			if (alpha) {
 				int adjust;
-				while (cc-- > 0) {
+				while (cc-- > 1) {
 					DOBREAK(breaklen, 1, fd);
 					/*
 					 * For images with alpha, matte against
