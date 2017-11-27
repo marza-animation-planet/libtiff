@@ -410,14 +410,13 @@ am__set_TESTS_bases = \
 RECHECK_LOGS = $(TEST_LOGS)
 AM_RECURSIVE_TARGETS = check recheck
 @HAVE_JPEG_TRUE@am__EXEEXT_2 = tiff2rgba-quad-tile.jpg.sh
-am__EXEEXT_3 = bmp2tiff_palette.sh bmp2tiff_rgb.sh gif2tiff.sh \
-	ppm2tiff_pbm.sh ppm2tiff_pgm.sh ppm2tiff_ppm.sh tiffcp-g3.sh \
-	tiffcp-g3-1d.sh tiffcp-g3-1d-fill.sh tiffcp-g3-2d.sh \
-	tiffcp-g3-2d-fill.sh tiffcp-g4.sh tiffcp-logluv.sh \
-	tiffcp-thumbnail.sh tiffdump.sh tiffinfo.sh tiffcp-split.sh \
-	tiffcp-split-join.sh tiff2ps-PS1.sh tiff2ps-PS2.sh \
-	tiff2ps-PS3.sh tiff2ps-EPS1.sh tiff2pdf.sh \
-	tiffcrop-doubleflip-logluv-3c-16b.sh \
+am__EXEEXT_3 = ppm2tiff_pbm.sh ppm2tiff_pgm.sh ppm2tiff_ppm.sh \
+	tiffcp-g3.sh tiffcp-g3-1d.sh tiffcp-g3-1d-fill.sh \
+	tiffcp-g3-2d.sh tiffcp-g3-2d-fill.sh tiffcp-g4.sh \
+	tiffcp-logluv.sh tiffcp-thumbnail.sh tiffcp-lzw-compat.sh \
+	tiffdump.sh tiffinfo.sh tiffcp-split.sh tiffcp-split-join.sh \
+	tiff2ps-PS1.sh tiff2ps-PS2.sh tiff2ps-PS3.sh tiff2ps-EPS1.sh \
+	tiff2pdf.sh tiffcrop-doubleflip-logluv-3c-16b.sh \
 	tiffcrop-doubleflip-minisblack-1c-16b.sh \
 	tiffcrop-doubleflip-minisblack-1c-8b.sh \
 	tiffcrop-doubleflip-minisblack-2c-8b-alpha.sh \
@@ -452,8 +451,9 @@ am__EXEEXT_3 = bmp2tiff_palette.sh bmp2tiff_rgb.sh gif2tiff.sh \
 	tiffcrop-R90-miniswhite-1c-1b.sh tiffcrop-R90-palette-1c-1b.sh \
 	tiffcrop-R90-palette-1c-4b.sh tiffcrop-R90-palette-1c-8b.sh \
 	tiffcrop-R90-rgb-3c-16b.sh tiffcrop-R90-rgb-3c-8b.sh \
-	tiff2rgba-logluv-3c-16b.sh tiff2rgba-minisblack-1c-16b.sh \
-	tiff2rgba-minisblack-1c-8b.sh \
+	tiff2bw-palette-1c-8b.sh tiff2bw-quad-lzw-compat.sh \
+	tiff2bw-rgb-3c-8b.sh tiff2rgba-logluv-3c-16b.sh \
+	tiff2rgba-minisblack-1c-16b.sh tiff2rgba-minisblack-1c-8b.sh \
 	tiff2rgba-minisblack-2c-8b-alpha.sh \
 	tiff2rgba-miniswhite-1c-1b.sh tiff2rgba-palette-1c-1b.sh \
 	tiff2rgba-palette-1c-4b.sh tiff2rgba-palette-1c-8b.sh \
@@ -654,13 +654,12 @@ CLEANFILES = test_packbits.tif o-*
 @HAVE_JPEG_FALSE@JPEG_DEPENDENT_CHECK_PROG = 
 @HAVE_JPEG_TRUE@JPEG_DEPENDENT_CHECK_PROG = raw_decode
 @HAVE_JPEG_FALSE@JPEG_DEPENDENT_TESTSCRIPTS = 
-@HAVE_JPEG_TRUE@JPEG_DEPENDENT_TESTSCRIPTS = tiff2rgba-quad-tile.jpg.sh
+@HAVE_JPEG_TRUE@JPEG_DEPENDENT_TESTSCRIPTS = \
+@HAVE_JPEG_TRUE@	tiff2rgba-quad-tile.jpg.sh
+
 
 # Test scripts to execute
 TESTSCRIPTS = \
-	bmp2tiff_palette.sh \
-	bmp2tiff_rgb.sh \
-	gif2tiff.sh \
 	ppm2tiff_pbm.sh \
 	ppm2tiff_pgm.sh \
 	ppm2tiff_ppm.sh \
@@ -672,6 +671,7 @@ TESTSCRIPTS = \
 	tiffcp-g4.sh \
 	tiffcp-logluv.sh \
 	tiffcp-thumbnail.sh \
+	tiffcp-lzw-compat.sh \
 	tiffdump.sh \
 	tiffinfo.sh \
 	tiffcp-split.sh \
@@ -721,6 +721,9 @@ TESTSCRIPTS = \
 	tiffcrop-R90-palette-1c-8b.sh \
 	tiffcrop-R90-rgb-3c-16b.sh \
 	tiffcrop-R90-rgb-3c-8b.sh \
+	tiff2bw-palette-1c-8b.sh \
+	tiff2bw-quad-lzw-compat.sh \
+	tiff2bw-rgb-3c-8b.sh \
 	tiff2rgba-logluv-3c-16b.sh \
 	tiff2rgba-minisblack-1c-16b.sh \
 	tiff2rgba-minisblack-1c-8b.sh \
@@ -748,14 +751,8 @@ TIFFIMAGES = \
 	images/palette-1c-8b.tiff \
 	images/rgb-3c-16b.tiff \
 	images/rgb-3c-8b.tiff \
-	images/quad-tile.jpg.tiff
-
-BMPIMAGES = \
-	images/palette-1c-8b.bmp \
-	images/rgb-3c-8b.bmp
-
-GIFIMAGES = \
-	images/palette-1c-8b.gif
+	images/quad-tile.jpg.tiff \
+	images/quad-lzw-compat.tiff
 
 PNMIMAGES = \
 	images/minisblack-1c-8b.pgm \
@@ -768,8 +765,6 @@ PNMIMAGES = \
 # files which are not currently used by the tests.
 IMAGES_EXTRA_DIST = \
 	images/README.txt \
-	$(BMPIMAGES) \
-	$(GIFIMAGES) \
 	$(PNMIMAGES) \
 	$(TIFFIMAGES)
 
@@ -1146,27 +1141,6 @@ raw_decode.log: raw_decode$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-bmp2tiff_palette.sh.log: bmp2tiff_palette.sh
-	@p='bmp2tiff_palette.sh'; \
-	b='bmp2tiff_palette.sh'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-bmp2tiff_rgb.sh.log: bmp2tiff_rgb.sh
-	@p='bmp2tiff_rgb.sh'; \
-	b='bmp2tiff_rgb.sh'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-gif2tiff.sh.log: gif2tiff.sh
-	@p='gif2tiff.sh'; \
-	b='gif2tiff.sh'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
 ppm2tiff_pbm.sh.log: ppm2tiff_pbm.sh
 	@p='ppm2tiff_pbm.sh'; \
 	b='ppm2tiff_pbm.sh'; \
@@ -1240,6 +1214,13 @@ tiffcp-logluv.sh.log: tiffcp-logluv.sh
 tiffcp-thumbnail.sh.log: tiffcp-thumbnail.sh
 	@p='tiffcp-thumbnail.sh'; \
 	b='tiffcp-thumbnail.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+tiffcp-lzw-compat.sh.log: tiffcp-lzw-compat.sh
+	@p='tiffcp-lzw-compat.sh'; \
+	b='tiffcp-lzw-compat.sh'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -1587,6 +1568,27 @@ tiffcrop-R90-rgb-3c-8b.sh.log: tiffcrop-R90-rgb-3c-8b.sh
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+tiff2bw-palette-1c-8b.sh.log: tiff2bw-palette-1c-8b.sh
+	@p='tiff2bw-palette-1c-8b.sh'; \
+	b='tiff2bw-palette-1c-8b.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+tiff2bw-quad-lzw-compat.sh.log: tiff2bw-quad-lzw-compat.sh
+	@p='tiff2bw-quad-lzw-compat.sh'; \
+	b='tiff2bw-quad-lzw-compat.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+tiff2bw-rgb-3c-8b.sh.log: tiff2bw-rgb-3c-8b.sh
+	@p='tiff2bw-rgb-3c-8b.sh'; \
+	b='tiff2bw-rgb-3c-8b.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 tiff2rgba-logluv-3c-16b.sh.log: tiff2rgba-logluv-3c-16b.sh
 	@p='tiff2rgba-logluv-3c-16b.sh'; \
 	b='tiff2rgba-logluv-3c-16b.sh'; \
@@ -1860,6 +1862,26 @@ memcheck:
 ptrcheck:
 	$(MAKE) MEMCHECK='valgrind --tool=exp-ptrcheck --quiet $(VALGRIND_EXTRA_OPTS)' check
 
+# tiff2bw is pretty lame so currently only the generated scripts
+# tiff2bw-palette-1c-8b.sh, tiff2bw-quad-lzw-compat.sh, and
+# tiff2bw-rgb-3c-8b.sh pass tests.
+generate-tiff2bw-tests:
+	for file in $(TIFFIMAGES) ; \
+	do \
+	base=`basename $$file .tiff` ; \
+	testscript=$(srcdir)/tiff2bw-$$base.sh ; \
+	( \
+	  echo "#!/bin/sh" ; \
+	  echo "# Generated file, master is Makefile.am" ; \
+	  echo ". \$${srcdir:-.}/common.sh" ; \
+	  echo "infile=\"\$$srcdir/$$file\"" ; \
+	  echo "outfile=\"o-tiff2bw-$$base.tiff\"" ; \
+	  echo "f_test_convert \"\$$TIFF2BW\" \$$infile \$$outfile" ; \
+	  echo "f_tiffinfo_validate \$$outfile" ; \
+	) > $$testscript ; \
+	chmod +x $$testscript ; \
+	done
+
 generate-tiff2rgba-tests:
 	for file in $(TIFFIMAGES) ; \
 	do \
@@ -1956,6 +1978,7 @@ generate-tiffcrop-tests: \
 	generate-tiffcrop-extractz14-tests
 
 generate-tests: \
+	generate-tiff2bw-tests \
 	generate-tiff2rgba-tests \
 	generate-tiffcrop-tests
 
