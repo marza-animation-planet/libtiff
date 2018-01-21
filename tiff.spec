@@ -1,4 +1,3 @@
-# $Id$
 #
 # TIFF Software
 #

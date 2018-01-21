@@ -1,5 +1,3 @@
-/* $Id$ */
-
 #include "tif_config.h"
 
 #include <stdio.h>

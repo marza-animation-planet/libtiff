@@ -1,6 +1,4 @@
 /******************************************************************************
- * $Id$
- *
  * Project:  TIFF Overview Builder
  * Purpose:  Library functions to maintain two rows of tiles or two strips
  *           of data for output overviews as an output cache. 

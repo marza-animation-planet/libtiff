@@ -1,4 +1,3 @@
-# $Header$
 #
 # TIFF Library Tools
 #
@@ -47,7 +46,6 @@ LIBS=	-l${LIBTIFF} -lm
 MACHALL=ras2tiff.ttp
 OBJS=\
 	fax2tiff.o \
-	gif2tiff.o \
 	pal2rgb.o \
 	ppm2tiff.o \
 	rgb2ycbcr.o \
@@ -61,13 +59,11 @@ OBJS=\
 	tiffinfo.o \
 	tiffmedian.o \
 	tiffsplit.o \
-	ras2tiff.o \
 	raw2tiff.o \
 	${GETOPT} \
 	${NULL}
 ALL=\
 	fax2tiff.ttp \
-	gif2tiff.ttp \
 	pal2rgb.ttp \
 	ppm2tiff.ttp \
 	rgb2ycbcr.ttp \
@@ -120,15 +116,9 @@ pal2rgb.ttp: pal2rgb.c ${LIBTIFF}
 # convert RGB image to YCbCr
 rgb2ycbcr.ttp: rgb2ycbcr.c ${GETOPT} ${LIBTIFF}
 	${CC} -o rgb2ycbcr.ttp ${CFLAGS} rgb2ycbcr.c ${GETOPT} ${LIBS}
-# GIF converter
-gif2tiff.ttp: gif2tiff.c ${LIBTIFF}
-	${CC} -o gif2tiff.ttp ${CFLAGS} gif2tiff.c ${LIBS}
 # PBM converter
 ppm2tiff.ttp: ppm2tiff.c ${LIBTIFF}
 	${CC} -o ppm2tiff.ttp ${CFLAGS} ppm2tiff.c ${LIBS}
-# Sun rasterfile converter
-ras2tiff.ttp: ras2tiff.c ${LIBTIFF}
-	${CC} -o ras2tiff.ttp ${CFLAGS} ras2tiff.c ${LIBS}
 # convert raw images to TIFFs
 raw2tiff.ttp: raw2tiff.c ${LIBTIFF}
 	${CC} -o raw2tiff.ttp ${CFLAGS} raw2tiff.c ${LIBS}

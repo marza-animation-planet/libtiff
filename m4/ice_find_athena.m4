@@ -1,4 +1,3 @@
-dnl $Id$
 dnl 
 dnl ice_find_athena.m4
 dnl 
