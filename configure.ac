@@ -174,7 +174,7 @@ case "${host_os}" in
 esac
 
 dnl Checks for header files.
-AC_CHECK_HEADERS([assert.h fcntl.h io.h limits.h malloc.h search.h sys/time.h unistd.h])
+AC_CHECK_HEADERS([assert.h fcntl.h io.h search.h unistd.h])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -195,12 +195,6 @@ AC_CHECK_DECLS([optarg])
 dnl ---------------------------------------------------------------------------
 dnl Compute sized types for current CPU and compiler options
 dnl ---------------------------------------------------------------------------
-
-# Obtain size of an 'signed short' and define as SIZEOF_SIGNED_SHORT
-AC_CHECK_SIZEOF(signed short)
-
-# Obtain size of an 'unsigned short' and define as SIZEOF_UNSIGNED_SHORT
-AC_CHECK_SIZEOF(unsigned short)
 
 # Obtain size of an 'signed int' and define as SIZEOF_SIGNED_INT
 AC_CHECK_SIZEOF(signed int)
@@ -412,22 +406,15 @@ AC_MSG_RESULT($PTRDIFF_T)
 AC_DEFINE_UNQUOTED(TIFF_PTRDIFF_T,$PTRDIFF_T,[Pointer difference type])
 AC_DEFINE_UNQUOTED(TIFF_PTRDIFF_FORMAT,$PTRDIFF_FORMAT,[Pointer difference type formatter])
 
-dnl Some compilers (IBM VisualAge) has these types defined, so check it here:
-AC_CHECK_TYPES([int8, int16, int32],,,
-[
-#if HAVE_INTTYPES_H
-# include <inttypes.h>
-#endif
-])
-
 dnl Checks for library functions.
-AC_CHECK_FUNCS([floor isascii memmove memset mmap pow setmode snprintf sqrt \
-strchr strrchr strstr strtol strtoul strtoull])
+AC_CHECK_FUNCS([mmap setmode snprintf])
 
 dnl Will use local replacements for unavailable functions
 AC_REPLACE_FUNCS(getopt)
 AC_REPLACE_FUNCS(snprintf)
 AC_REPLACE_FUNCS(strcasecmp)
+AC_REPLACE_FUNCS(strtol)
+AC_REPLACE_FUNCS(strtoll)
 AC_REPLACE_FUNCS(strtoul)
 AC_REPLACE_FUNCS(strtoull)
 AC_REPLACE_FUNCS(lfind)
@@ -827,6 +814,60 @@ fi
 AM_CONDITIONAL(HAVE_LZMA, test "$HAVE_LZMA" = 'yes')
 
 dnl ---------------------------------------------------------------------------
+dnl Check for libzstd.
+dnl ---------------------------------------------------------------------------
+
+HAVE_ZSTD=no
+
+AC_ARG_ENABLE(zstd,
+	      AS_HELP_STRING([--disable-zstd],
+			     [disable libzstd usage (required for zstd compression, enabled by default)]),,)
+AC_ARG_WITH(zstd-include-dir,
+	    AS_HELP_STRING([--with-zstd-include-dir=DIR],
+			   [location of libzstd headers]),,)
+AC_ARG_WITH(zstd-lib-dir,
+	    AS_HELP_STRING([--with-zstd-lib-dir=DIR],
+			   [location of libzstd library binary]),,)
+
+if test "x$enable_zstd" != "xno" ; then
+
+  if test "x$with_zstd_lib_dir" != "x" ; then
+    LDFLAGS="-L$with_zstd_lib_dir $LDFLAGS"
+  fi
+  
+  AC_CHECK_LIB(zstd, ZSTD_decompressStream, [zstd_lib=yes], [zstd_lib=no],)
+  if test "$zstd_lib" = "no" -a "x$with_zstd_lib_dir" != "x"; then
+    AC_MSG_ERROR([zstd library not found at $with_zstd_lib_dir])
+  fi
+    
+  if test "x$with_zstd_include_dir" != "x" ; then
+    CPPFLAGS="-I$with_zstd_include_dir $CPPFLAGS"
+  fi
+  AC_CHECK_HEADER(zstd.h, [zstd_h=yes], [zstd_h=no])
+  if test "$zstd_h" = "no" -a "x$with_zstd_include_dir" != "x" ; then
+    AC_MSG_ERROR([Libzstd headers not found at $with_zstd_include_dir])
+  fi
+
+  if test "$zstd_lib" = "yes" -a "$zstd_h" = "yes" ; then
+    HAVE_ZSTD=yes
+  fi
+
+fi
+
+if test "$HAVE_ZSTD" = "yes" ; then
+  AC_DEFINE(ZSTD_SUPPORT,1,[Support zstd compression])
+  LIBS="-lzstd $LIBS"
+  tiff_libs_private="-lzstd ${tiff_libs_private}"
+
+  if test "$HAVE_RPATH" = "yes" -a "x$with_zstd_lib_dir" != "x" ; then
+    LIBDIR="-R $with_zstd_lib_dir $LIBDIR"
+  fi
+
+fi
+
+AM_CONDITIONAL(HAVE_ZSTD, test "$HAVE_ZSTD" = 'yes')
+
+dnl ---------------------------------------------------------------------------
 dnl Should 8/12 bit jpeg mode be enabled?
 dnl ---------------------------------------------------------------------------
 
@@ -1103,6 +1144,7 @@ LOC_MSG([  Old JPEG support:                   ${HAVE_OJPEG}])
 LOC_MSG([  JPEG 8/12 bit dual mode:            ${HAVE_JPEG12}])
 LOC_MSG([  ISO JBIG support:                   ${HAVE_JBIG}])
 LOC_MSG([  LZMA2 support:                      ${HAVE_LZMA}])
+LOC_MSG([  ZSTD support:                       ${HAVE_ZSTD}])
 LOC_MSG()
 LOC_MSG([  C++ support:                        ${HAVE_CXX}])
 LOC_MSG()

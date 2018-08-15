@@ -25,7 +25,7 @@
  * ON ANY THEORY OF LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE
  * OR PERFORMANCE OF THIS SOFTWARE.
  *
- * Some portions of the current code are derived from tiffcp, primarly in 
+ * Some portions of the current code are derived from tiffcp, primarily in 
  * the areas of lowlevel reading and writing of TAGS, scanlines and tiles though
  * some of the original functions have been extended to support arbitrary bit
  * depths. These functions are presented at the top of this file.
@@ -214,6 +214,8 @@ extern int getopt(int argc, char * const argv[], const char *optstring);
 #define DUMP_NONE   0
 #define DUMP_TEXT   1
 #define DUMP_RAW    2
+
+#define TIFF_DIR_MAX  65534
 
 /* Offsets into buffer for margins and fixed width and length segments */
 struct offset {
@@ -1683,7 +1685,7 @@ void  process_command_opts (int argc, char *argv[], char *mp, char *mode, uint32
 		  *defconfig = PLANARCONFIG_CONTIG;
 		else
 		  {
-		  TIFFError ("Unkown planar configuration", "%s", optarg);
+		  TIFFError ("Unknown planar configuration", "%s", optarg);
                   TIFFError ("For valid options type", "tiffcrop -h");
                   exit (-1);
                   }
@@ -2210,8 +2212,9 @@ main(int argc, char* argv[])
   unsigned int  total_pages  = 0;
   unsigned int  total_images = 0;
   unsigned int  end_of_input = FALSE;
-  int    seg, length;
-  char   temp_filename[PATH_MAX + 1];
+  int    seg;
+  size_t length;
+  char   temp_filename[PATH_MAX + 16]; /* Extra space keeps the compiler from complaining */
 
   little_endian = *((unsigned char *)&little_endian) & '1';
 
@@ -2231,7 +2234,7 @@ main(int argc, char* argv[])
     pageNum = -1;
   else
     total_images = 0;
-  /* read multiple input files and write to output file(s) */
+  /* Read multiple input files and write to output file(s) */
   while (optind < argc - 1)
     {
     in = TIFFOpen (argv[optind], "r");
@@ -2239,7 +2242,14 @@ main(int argc, char* argv[])
       return (-3);
 
     /* If only one input file is specified, we can use directory count */
-    total_images = TIFFNumberOfDirectories(in); 
+    total_images = TIFFNumberOfDirectories(in);
+    if (total_images > TIFF_DIR_MAX)
+      {
+      TIFFError (TIFFFileName(in), "File contains too many directories");
+      if (out != NULL)
+        (void) TIFFClose(out);
+      return (1);
+      }
     if (image_count == 0)
       {
       dirnum = 0;
@@ -2303,8 +2313,8 @@ main(int argc, char* argv[])
           if (dump.infile != NULL)
             fclose (dump.infile);
 
-          /* dump.infilename is guaranteed to be NUL termimated and have 20 bytes 
-             fewer than PATH_MAX */ 
+          /* dump.infilename is guaranteed to be NUL terminated and have 20 bytes
+             fewer than PATH_MAX */
           snprintf(temp_filename, sizeof(temp_filename), "%s-read-%03d.%s",
 		   dump.infilename, dump_images,
                   (dump.format == DUMP_TEXT) ? "txt" : "raw");
@@ -2322,7 +2332,7 @@ main(int argc, char* argv[])
           if (dump.outfile != NULL)
             fclose (dump.outfile);
 
-          /* dump.outfilename is guaranteed to be NUL termimated and have 20 bytes 
+          /* dump.outfilename is guaranteed to be NUL terminated and have 20 bytes
              fewer than PATH_MAX */ 
           snprintf(temp_filename, sizeof(temp_filename), "%s-write-%03d.%s",
 		   dump.outfilename, dump_images,
@@ -6772,12 +6782,12 @@ extractImageSection(struct image_data *image, struct pageseg *section,
 #endif
 
       bytebuff1 = bytebuff2 = 0;
-      if (shift1 == 0) /* the region is byte and sample alligned */
+      if (shift1 == 0) /* the region is byte and sample aligned */
         {
 	_TIFFmemcpy (sect_buff + dst_offset, src_buff + offset1, full_bytes);
 
 #ifdef DEVELMODE
-	TIFFError ("", "        Alligned data src offset1: %8d, Dst offset: %8d\n", offset1, dst_offset); 
+	TIFFError ("", "        Aligned data src offset1: %8d, Dst offset: %8d\n", offset1, dst_offset); 
 	sprintf(&bitarray[18], "\n");
 	sprintf(&bitarray[19], "\t");
         for (j = 20, k = 7; j < 28; j++, k--)
@@ -7720,7 +7730,7 @@ createCroppedImage(struct image_data *image, struct crop_mask *crop,
  * original code assumes we are always copying all samples.
  * Use of global variables for config, compression and others
  * should be replaced by addition to the crop_mask struct (which
- * will be renamed to proc_opts indicating that is controlls
+ * will be renamed to proc_opts indicating that is controls
  * user supplied processing options, not just cropping) and 
  * then passed in as an argument.
  */
@@ -8415,7 +8425,7 @@ rotateImage(uint16 rotation, struct image_data *image, uint32 *img_width,
   ibuff = *ibuff_ptr;
   switch (rotation)
     {
-    case 180: if ((bps % 8) == 0) /* byte alligned data */
+    case 180: if ((bps % 8) == 0) /* byte aligned data */
                 { 
                 src = ibuff;
                 pix_offset = (spp * bps) / 8;
@@ -9055,8 +9065,9 @@ mirrorImage(uint16 spp, uint16 bps, uint16 mirror, uint32 width, uint32 length, 
                _TIFFfree(line_buff);
              if (mirror == MIRROR_VERT)
                break;
+             /* Fall through */
     case MIRROR_HORIZ :
-              if ((bps % 8) == 0) /* byte alligned data */
+              if ((bps % 8) == 0) /* byte aligned data */
                 { 
                 for (row = 0; row < length; row++)
                   {
@@ -9201,7 +9212,7 @@ invertImage(uint16 photometric, uint16 spp, uint16 bps, uint32 width, uint32 len
 		bytebuff2 = 4 - (uint8)(*src & 48  >> 4);
 		bytebuff3 = 4 - (uint8)(*src & 12  >> 2);
 		bytebuff4 = 4 - (uint8)(*src & 3);
-		*src = (bytebuff1 << 6) || (bytebuff2 << 4) || (bytebuff3 << 2) || bytebuff4;
+		*src = (bytebuff1 << 6) | (bytebuff2 << 4) | (bytebuff3 << 2) | bytebuff4;
                 src++;
                 }
             break;

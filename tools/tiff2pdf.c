@@ -68,6 +68,8 @@ extern int getopt(int, char**, char*);
 
 #define PS_UNIT_SIZE	72.0F
 
+#define TIFF_DIR_MAX    65534
+
 /* This type is of PDF color spaces. */
 typedef enum {
 	T2P_CS_BILEVEL = 0x01,	/* Bilevel, black and white */
@@ -1051,6 +1053,14 @@ void t2p_read_tiff_init(T2P* t2p, TIFF* input){
 	uint16* tiff_transferfunction[3];
 
 	directorycount=TIFFNumberOfDirectories(input);
+	if(directorycount > TIFF_DIR_MAX) {
+		TIFFError(
+			TIFF2PDF_MODULE,
+			"TIFF contains too many directories, %s",
+			TIFFFileName(input));
+		t2p->t2p_error = T2P_ERR_ERROR;
+		return;
+	}
 	t2p->tiff_pages = (T2P_PAGE*) _TIFFmalloc(TIFFSafeMultiply(tmsize_t,directorycount,sizeof(T2P_PAGE)));
 	if(t2p->tiff_pages==NULL){
 		TIFFError(
@@ -3736,12 +3746,13 @@ tsize_t
 t2p_sample_rgbaa_to_rgb(tdata_t data, uint32 samplecount)
 {
 	uint32 i;
-	
-    /* For the 3 first samples, there is overlapping between souce and
-       destination, so use memmove().
-       See http://bugzilla.maptools.org/show_bug.cgi?id=2577 */
-    for(i = 0; i < 3 && i < samplecount; i++)
-        memmove((uint8*)data + i * 3, (uint8*)data + i * 4, 3);
+
+	/* For the 3 first samples, there is overlap between source and
+	 * destination, so use memmove().
+	 * See http://bugzilla.maptools.org/show_bug.cgi?id=2577
+	 */
+	for(i = 0; i < 3 && i < samplecount; i++)
+		memmove((uint8*)data + i * 3, (uint8*)data + i * 4, 3);
 	for(; i < samplecount; i++)
 		memcpy((uint8*)data + i * 3, (uint8*)data + i * 4, 3);
 
