@@ -1,6 +1,7 @@
 import os
 import sys
 import excons
+import SCons.Script # pylint: disable=import-error
 
 
 env = excons.MakeBaseEnv()
@@ -50,10 +51,10 @@ if rv["require"] is None:
    excons.Call("zlib", imp=["RequireZlib", "ZlibPath"])
    cfg_deps.append(excons.cmake.OutputsCachePath("zlib"))
    zlib_static = (excons.GetArgument("zlib-static", 1, int) != 0)
-   cmake_opts["ZLIB_LIBRARY"] = ZlibPath(static=zlib_static)
+   cmake_opts["ZLIB_LIBRARY"] = ZlibPath(static=zlib_static) # pylint: disable=undefined-variable
    cmake_opts["ZLIB_INCLUDE_DIR"] = out_incdir
    def ZlibRequire(env):
-      RequireZlib(env, static=zlib_static)
+      RequireZlib(env, static=zlib_static) # pylint: disable=undefined-variable
 else:
    ZlibRequire = rv["require"]
 
@@ -74,10 +75,10 @@ if rv["require"] is None:
    else:
       cfg_deps.append(excons.automake.OutputsCachePath("libjpeg"))
    jpeg_static = (excons.GetArgument("jpeg-static", 1, int) != 0)
-   cmake_opts["JPEG_LIBRARY"] = LibjpegPath(static=jpeg_static)
+   cmake_opts["JPEG_LIBRARY"] = LibjpegPath(static=jpeg_static) # pylint: disable=undefined-variable
    cmake_opts["JPEG_INCLUDE_DIR"] = out_incdir
    def JpegRequire(env):
-      RequireLibjpeg(env, static=jpeg_static)
+      RequireLibjpeg(env, static=jpeg_static) # pylint: disable=undefined-variable
 else:
    JpegRequire = rv["require"]
 
@@ -91,13 +92,13 @@ if use_jbig:
    if rv["require"] is None:
       excons.PrintOnce("Build jbig from sources ...")
       excons.Call("jbigkit", imp=["RequireJbig", "JbigPath"])
-      libpath = JbigPath()
+      libpath = JbigPath() # pylint: disable=undefined-variable
       cfg_deps.append(libpath)
       cfg_deps.append(out_incdir + "/jbig_ar.h")
       cmake_opts["JBIG_LIBRARY"] = libpath
       cmake_opts["JBIG_INCLUDE_DIR"] = out_incdir
       def JbigRequire(env):
-         RequireJbig(env)
+         RequireJbig(env) # pylint: disable=undefined-variable
    else:
       JbigRequire = rv["require"]
 
@@ -146,6 +147,6 @@ excons.AddHelpOptions(libtiff="""TIFF OPTIONS
 
 excons.DeclareTargets(env, prjs)
 
-Export("LibtiffName LibtiffPath RequireLibtiff")
+SCons.Script.Export("LibtiffName LibtiffPath RequireLibtiff")
 
 
