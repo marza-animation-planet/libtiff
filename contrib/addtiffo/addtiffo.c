@@ -1,6 +1,4 @@
 /******************************************************************************
- * $Id$
- *
  * Project:  GeoTIFF Overview Builder
  * Purpose:  Mainline for building overviews in a TIFF file.
  * Author:   Frank Warmerdam, warmerdam@pobox.com
@@ -27,7 +25,7 @@
  * DEALINGS IN THE SOFTWARE.
  ******************************************************************************
  *
- * $Log$
+ * $Log: addtiffo.c,v $
  * Revision 1.8  2015-05-30 20:30:27  bfriesen
  * * contrib/addtiffo/addtiffo.c (main): Possibly address Coverity
  * 1024226 "Untrusted value as argument".

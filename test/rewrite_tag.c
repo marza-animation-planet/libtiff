@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * Copyright (c) 2007, Frank Warmerdam <warmerdam@pobox.com>
  *

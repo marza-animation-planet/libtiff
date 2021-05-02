@@ -32,6 +32,10 @@ environment:
       shared: OFF
     - compiler: vc14-nmake
       configuration: Release
+    - compiler: vc9-cmake
+      configuration: Debug
+      generator: Visual Studio 9 2008
+      shared: ON
 
 cache:
   - 'c:\projects\download -> appveyor.yml'
@@ -47,6 +51,8 @@ platform: x64
 
 init:
   - git config --global core.autocrlf input
+
+before_build:
   - 'FOR /F "tokens=* USEBACKQ" %%F IN (`C:\cygwin64\bin\cygpath -u %AV_TIFF_SOURCE%`) DO SET AV_TIFF_CYG_SOURCE=%%F'
   - 'FOR /F "tokens=* USEBACKQ" %%F IN (`C:\cygwin64\bin\cygpath -u %AV_TIFF_INSTALL%`) DO SET AV_TIFF_CYG_INSTALL=%%F'
   - 'if %compiler%==cygwin-cmake C:\Cygwin64\setup-x86_64 -q -R C:\Cygwin64 -s http://cygwin.mirror.constant.com -l %AV_TIFF_DOWNLOAD%\cygwin -P cmake,libjpeg-devel,zlib-devel'
@@ -60,14 +66,13 @@ init:
   - 'if %compiler%==cygwin-cmake set "AV_TIFF_CMAKE_SOURCE=%AV_TIFF_CYG_SOURCE%'
   - 'if %compiler%==cygwin-cmake set "AV_TIFF_CMAKE_INSTALL=%AV_TIFF_CYG_INSTALL%'
   - 'if %compiler%==vc14-nmake call "%VS140COMNTOOLS%..\..\VC\vcvarsall.bat" %platform%'
-
-before_build:
   - mkdir %AV_TIFF_BUILD%
   - cd %AV_TIFF_BUILD%
   - if NOT %compiler%==vc14-nmake echo Running cmake -G "%generator%" -DCMAKE_INSTALL_PREFIX=%AV_TIFF_CMAKE_INSTALL% -DCMAKE_BUILD_TYPE=%configuration% %AV_TIFF_CMAKE_SOURCE%
   - 'if %compiler%==cygwin-cmake bash -c "cmake -G \"%generator%\" -DCMAKE_INSTALL_PREFIX:PATH=%AV_TIFF_CMAKE_INSTALL% -DCMAKE_BUILD_TYPE=%configuration% %AV_CMAKE_ARGS% %AV_TIFF_CMAKE_SOURCE%"'
   - 'if %compiler%==mingw64-cmake cmake -G "%generator%" -DCMAKE_INSTALL_PREFIX:PATH=%AV_TIFF_CMAKE_INSTALL% -DCMAKE_BUILD_TYPE=%configuration% %AV_CMAKE_ARGS% %AV_TIFF_CMAKE_SOURCE%'
   - 'if %compiler%==vc14-cmake cmake -G "%generator%" -DCMAKE_INSTALL_PREFIX:PATH=%AV_TIFF_CMAKE_INSTALL% -DCMAKE_BUILD_TYPE=%configuration% %AV_CMAKE_ARGS% %AV_TIFF_CMAKE_SOURCE%'
+  - 'if %compiler%==vc9-cmake cmake -G "%generator%" -DCMAKE_INSTALL_PREFIX:PATH=%AV_TIFF_CMAKE_INSTALL% -DCMAKE_BUILD_TYPE=%configuration% %AV_CMAKE_ARGS% %AV_TIFF_CMAKE_SOURCE%'
 
 build_script:
   - if NOT %compiler%==vc14-nmake cd %AV_TIFF_BUILD%
@@ -75,6 +80,7 @@ build_script:
   - 'if %compiler%==cygwin-cmake bash -c "cmake --build . --config %configuration% --target install"'
   - 'if %compiler%==mingw64-cmake cmake --build . --config %configuration% --target install'
   - 'if %compiler%==vc14-cmake cmake --build . --config %configuration% --target install'
+  - 'if %compiler%==vc9-cmake cmake --build . --config %configuration% --target install'
   - 'if %compiler%==vc14-nmake nmake /f Makefile.vc EXTRAFLAGS=/DHAVE_SNPRINTF=1'
   - 'if %compiler%==vc14-nmake mkdir %AV_TIFF_INSTALL%'
   - 'if %compiler%==vc14-nmake mkdir %AV_TIFF_INSTALL%\bin'
@@ -100,10 +106,13 @@ before_test:
   - 'if %compiler%==cygwin-cmake bash -c "ctest -V -C %configuration%"'
   - 'if %compiler%==mingw64-cmake ctest -V -C %configuration%'
   - 'if %compiler%==vc14-cmake ctest -V -C %configuration%'
+  - 'if %compiler%==vc9-cmake ctest -V -C %configuration%'
 # vc14-nmake does not support unit tests
 
-artifacts:
-  - path: libtiff.zip
-    name: libtiff.zip
-  - path: libtiff-build.zip
-    name: libtiff-build.zip
+# AppVeyor don't yet have a configurable retention policy, so this will
+# eventually use up all the storage allowance.
+#artifacts:
+#  - path: libtiff.zip
+#    name: libtiff.zip
+#  - path: libtiff-build.zip
+#    name: libtiff-build.zip

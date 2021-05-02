@@ -1,4 +1,3 @@
-$! $Id$
 $!
 $! OpenVMS configure procedure for libtiff
 $! (c) Alexey Chupahin  22-NOV-2007

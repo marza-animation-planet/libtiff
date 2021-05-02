@@ -29,26 +29,17 @@ include_directories(${PROJECT_SOURCE_DIR}/libtiff
                     ${PROJECT_SOURCE_DIR}/port
                     ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(bmp2tiff bmp2tiff.c)
-target_link_libraries(bmp2tiff tiff port)
-
 add_executable(fax2ps fax2ps.c)
 target_link_libraries(fax2ps tiff port)
 
 add_executable(fax2tiff fax2tiff.c)
 target_link_libraries(fax2tiff tiff port)
 
-add_executable(gif2tiff gif2tiff.c)
-target_link_libraries(gif2tiff tiff port)
-
 add_executable(pal2rgb pal2rgb.c)
 target_link_libraries(pal2rgb tiff port)
 
 add_executable(ppm2tiff ppm2tiff.c)
 target_link_libraries(ppm2tiff tiff port)
-
-add_executable(ras2tiff ras2tiff.c rasterfile.h)
-target_link_libraries(ras2tiff tiff port)
 
 add_executable(raw2tiff raw2tiff.c)
 target_link_libraries(raw2tiff tiff port)
@@ -98,47 +89,11 @@ target_link_libraries(tiffset tiff port)
 add_executable(tiffsplit tiffsplit.c)
 target_link_libraries(tiffsplit tiff port)
 
-if(BUILD_SHARED_LIBS AND UNIX)
-  if(APPLE)
-    set(exe_rpath "@loader_path/../lib")
-  else()
-    set(exe_rpath "$ORIGIN/../lib")
-  endif()
-  set_target_properties(bmp2tiff PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(fax2ps PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(fax2tiff PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(gif2tiff PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(pal2rgb PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(ppm2tiff PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(ras2tiff PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(raw2tiff PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(rgb2ycbcr PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(thumbnail PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(tiff2bw PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(tiff2pdf PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(tiff2ps PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(tiff2rgba PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(tiffcmp PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(tiffcp PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(tiffcrop PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(tiffdither PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(tiffdump PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(tiffinfo PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(tiffmedian PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(tiffset PROPERTIES INSTALL_RPATH ${exe_rpath})
-  set_target_properties(tiffsplit PROPERTIES INSTALL_RPATH ${exe_rpath})
-endif()
-
-install(TARGETS bmp2tiff
-                fax2ps
+install(TARGETS fax2ps
                 fax2tiff
-                gif2tiff
                 pal2rgb
                 ppm2tiff
-                ras2tiff
                 raw2tiff
-                rgb2ycbcr
-                thumbnail
                 tiff2bw
                 tiff2pdf
                 tiff2ps
@@ -163,11 +118,7 @@ if(HAVE_OPENGL)
   endif()
 
   add_executable(tiffgt tiffgt.c)
-  target_link_libraries(tiffgt tiff ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
-
-  if(BUILD_SHARED_LIBS AND UNIX)
-    set_target_properties(tiffgt PROPERTIES INSTALL_RPATH ${exe_rpath})
-  endif()
+  target_link_libraries(tiffgt tiff port ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
 
   install(TARGETS tiffgt
           RUNTIME DESTINATION "${CMAKE_INSTALL_FULL_BINDIR}")

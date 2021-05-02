@@ -13,6 +13,7 @@ addons:
     - libjbig-dev
     - liblzma-dev
     - zlib1g-dev
+    - zip
 
 os:
   - linux
@@ -23,12 +24,6 @@ env:
     - BUILD=autoconf
     - BUILD=cmake TOOL="Unix Makefiles" TYPE=Release
     - BUILD=cmake TOOL="Ninja" TYPE=Debug
-
-matrix:
-  fast_finish: true
-  exclude:
-    - os: linux
-      env: BUILD=cmake TOOL="Ninja" TYPE=Debug NETACCESSOR=cfurl TRANSCODER=macosunicodeconverter
 
 script:
   - sh ./build/travis-ci "$BUILD" "$TOOL" "$TYPE"

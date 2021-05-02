@@ -16,7 +16,7 @@ cfg_deps = []
 
 cmake_opts = {"BUILD_SHARED_LIBS": (0 if staticlib else 1),
               "CMAKE_INSTALL_LIBDIR": "lib",
-              # External codes
+              # External codecs
               "zlib": 1,
               "jpeg": 1,
               "old-jpeg": 1,
@@ -24,7 +24,9 @@ cmake_opts = {"BUILD_SHARED_LIBS": (0 if staticlib else 1),
               "lzma": 0,
               "jbig": (1 if use_jbig else 0),
               "pixarlog": 1,
-              # Internal codes
+              "zstd": 0,
+              "webp": 0,
+              # Internal codecs
               "ccitt": 1,
               "packbits": 1,
               "lzw": 1,
@@ -32,8 +34,6 @@ cmake_opts = {"BUILD_SHARED_LIBS": (0 if staticlib else 1),
               "next": 1,
               "logluv": 1,
               # other options
-              "gl": 0,
-              "doc": 0,
               "mdi": 1,
               "cxx": 0}
 
