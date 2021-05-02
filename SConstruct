@@ -26,6 +26,7 @@ cmake_opts = {"BUILD_SHARED_LIBS": (0 if staticlib else 1),
               "pixarlog": 1,
               "zstd": 0,
               "webp": 0,
+              "lerc": 0,
               # Internal codecs
               "ccitt": 1,
               "packbits": 1,
@@ -96,6 +97,7 @@ if use_jbig:
       cfg_deps.append(libpath)
       cfg_deps.append(out_incdir + "/jbig_ar.h")
       cmake_opts["JBIG_LIBRARY"] = libpath
+      cmake_opts["JBIG_LIBRARY_RELEASE"] = libpath
       cmake_opts["JBIG_INCLUDE_DIR"] = out_incdir
       def JbigRequire(env):
          RequireJbig(env) # pylint: disable=undefined-variable
