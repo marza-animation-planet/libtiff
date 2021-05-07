@@ -44,12 +44,12 @@ def ZlibLibname(static):
    return ("z" if sys.platform != "win32" else ("zlib" if static else "zdll"))
 
 def ZlibDefines(static):
-   return ([] if static else ["ZLIB_DLL"])
+   return ([] if (static or sys.platform != "win32") else ["ZLIB_DLL"])
 
 rv = excons.cmake.ExternalLibRequire(cmake_opts, name="zlib", libnameFunc=ZlibLibname, definesFunc=ZlibDefines)
 if rv["require"] is None:
-   excons.PrintOnce("Build zlib from sources ...")
-   excons.Call("zlib", imp=["RequireZlib", "ZlibPath"])
+   excons.PrintOnce("TIFF: Build zlib from sources ...")
+   excons.Call("zlib", targets=["zlib"], imp=["RequireZlib", "ZlibPath"])
    cfg_deps.append(excons.cmake.OutputsCachePath("zlib"))
    zlib_static = (excons.GetArgument("zlib-static", 1, int) != 0)
    cmake_opts["ZLIB_LIBRARY"] = ZlibPath(static=zlib_static) # pylint: disable=undefined-variable
@@ -69,8 +69,8 @@ def JpegLibname(static):
 
 rv = excons.cmake.ExternalLibRequire(cmake_opts, name="libjpeg", libnameFunc=JpegLibname, varPrefix="JPEG_")
 if rv["require"] is None:
-   excons.PrintOnce("Build libjpeg from sources ...")
-   excons.Call("libjpeg-turbo", imp=["RequireLibjpeg", "LibjpegPath"])
+   excons.PrintOnce("TIFF: Build libjpeg from sources ...")
+   excons.Call("libjpeg-turbo", targets=["libjpeg"], imp=["RequireLibjpeg", "LibjpegPath"])
    if sys.platform == "win32":
       cfg_deps.append(excons.cmake.OutputsCachePath("libjpeg"))
    else:
@@ -91,11 +91,12 @@ if use_jbig:
 
    rv = excons.cmake.ExternalLibRequire(cmake_opts, name="jbig", libnameFunc=JbigLibname)
    if rv["require"] is None:
-      excons.PrintOnce("Build jbig from sources ...")
-      excons.Call("jbigkit", imp=["RequireJbig", "JbigPath"])
+      excons.PrintOnce("TIFF: Build jbig from sources ...")
+      excons.Call("jbigkit", targets=["jbig"], imp=["RequireJbig", "JbigPath"])
       libpath = JbigPath() # pylint: disable=undefined-variable
       cfg_deps.append(libpath)
       cfg_deps.append(out_incdir + "/jbig_ar.h")
+      cfg_deps.append(out_incdir + "/jbig.h")
       cmake_opts["JBIG_LIBRARY"] = libpath
       cmake_opts["JBIG_LIBRARY_RELEASE"] = libpath
       cmake_opts["JBIG_INCLUDE_DIR"] = out_incdir
@@ -131,7 +132,7 @@ prjs = [
    {  "name": "libtiff",
       "type": "cmake",
       "cmake-opts": cmake_opts,
-      "cmake-cfgs": excons.CollectFiles(".", patterns=["CMakeLists.txt"], recursive=True, exclude=["zlib", "libjpeg-turbo"]) + cfg_deps,
+      "cmake-cfgs": excons.CollectFiles(".", patterns=["CMakeLists.txt"], recursive=True, exclude=["zlib", "jbigkit", "libjpeg-turbo"]) + cfg_deps,
       "cmake-srcs": excons.CollectFiles("libtiff", patterns=["*.c"], recursive=True),
       "cmake-outputs": ["include/tiff.h",
                         "include/tiffconf.h",
