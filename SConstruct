@@ -16,6 +16,7 @@ cfg_deps = []
 
 cmake_opts = {"BUILD_SHARED_LIBS": (0 if staticlib else 1),
               "CMAKE_INSTALL_LIBDIR": "lib",
+              "CMAKE_POSITION_INDEPENDENT_CODE": 1,
               # External codecs
               "zlib": 1,
               "jpeg": 1,
