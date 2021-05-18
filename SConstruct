@@ -106,7 +106,10 @@ if use_jbig:
 # TIFF library ==================================================================
 
 def LibtiffName():
-   return "tiff"
+   libname = "tiff"
+   if sys.platform == "win32" and excons.GetArgument("debug", 0, int) != 0:
+      libname += "d"
+   return libname
 
 def LibtiffPath():
    name = LibtiffName()
