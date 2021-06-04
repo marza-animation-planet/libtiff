@@ -1,12 +1,12 @@
 [submodule "excons"]
 	path = excons
-	url = git://github.com/gatgui/excons
+	url = git@github.com:marza-animation-planet/excons
 [submodule "zlib"]
 	path = zlib
-	url = git://github.com/gatgui/zlib
+	url = git@github.com:marza-animation-planet/zlib
 [submodule "libjpeg-turbo"]
 	path = libjpeg-turbo
-	url = git://github.com/gatgui/libjpeg-turbo
+	url = git@github.com:marza-animation-planet/libjpeg-turbo
 [submodule "jbigkit"]
 	path = jbigkit
-	url = git://github.com/gatgui/jbigkit
+	url = git@github.com:marza-animation-planet/jbigkit
